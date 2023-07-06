@@ -1,4 +1,5 @@
 const expressAsyncHandler = require('express-async-handler');
+const { generateToken } = require('../config/jwtToken');
 const User = require('../models/userModel');
 
 const createUser = expressAsyncHandler(async(req, res) => {
@@ -20,9 +21,44 @@ const loginUser = expressAsyncHandler(async(req, res) => {
     //check if user exists or not
     const findUser = await User.findOne({email});
     if(findUser && await findUser.isPasswordMatched(password)){
-        res.json(findUser);
+        res.json(
+            {
+                id:findUser?._id,
+                firstName: findUser?.firstName,
+                lastName: findUser?.lastName,
+                email: findUser?.email,
+                mobile: findUser?.mobile,
+                token: generateToken(findUser?._id)
+            }
+        );
     }else{
         throw new Error("Invalid Credentials")
     }
 })
-module.exports = {createUser, loginUser};
+
+//to get all the users
+
+const getAllUsers = expressAsyncHandler( async(req , res) => {
+    try{
+        const allUsers = await User.find();
+        res.json(allUsers);
+    }catch(err){
+        throw new Error(err)
+    }
+})
+
+//to get a single user
+
+const getUser = expressAsyncHandler(async(req, res) => {
+    const {id} = req.params;
+    // console.log(id);
+    try{
+        const foundUser = await User.findById(id);
+        res.json({
+            foundUser
+        });
+    }catch(err){
+        throw new Error(err);
+    }
+})
+module.exports = {createUser, loginUser, getAllUsers , getUser};
