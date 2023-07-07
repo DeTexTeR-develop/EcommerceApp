@@ -11,7 +11,7 @@ const createUser = expressAsyncHandler(async(req, res) => {
         res.json(newUser);
     }else{
         //user already exists
-        throw new Error("user already exists hoe hoe hoe");
+        throw new Error("user already exists");
 
     };
 });
@@ -32,9 +32,9 @@ const loginUser = expressAsyncHandler(async(req, res) => {
             }
         );
     }else{
-        throw new Error("Invalid Credentials")
+        throw new Error("Invalid Credentials");
     }
-})
+});
 
 //to get all the users
 
@@ -43,9 +43,9 @@ const getAllUsers = expressAsyncHandler( async(req , res) => {
         const allUsers = await User.find();
         res.json(allUsers);
     }catch(err){
-        throw new Error(err)
+        throw new Error(err);
     }
-})
+});
 
 //to get a single user
 
@@ -60,5 +60,18 @@ const getUser = expressAsyncHandler(async(req, res) => {
     }catch(err){
         throw new Error(err);
     }
-})
-module.exports = {createUser, loginUser, getAllUsers , getUser};
+});
+
+const deleteUser = expressAsyncHandler(async(req, res) => {
+    const { id } = req.params;
+    try{
+        const deletedUser = await User.findByIdAndDelete(id);
+        res.json({
+            deletedUser
+        });
+    }catch(err){
+        throw new Error(err);
+    }
+});
+
+module.exports = { createUser, loginUser, getAllUsers , getUser, deleteUser };
