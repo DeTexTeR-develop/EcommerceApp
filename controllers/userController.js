@@ -74,4 +74,33 @@ const deleteUser = expressAsyncHandler(async(req, res) => {
     }
 });
 
-module.exports = { createUser, loginUser, getAllUsers , getUser, deleteUser };
+const updateUser = expressAsyncHandler(async(req, res) => {
+    const { id } = req.params;
+    try{
+        const updateUser = await User.findByIdAndUpdate(id,
+            {
+                firstName: req?.body?.firstName,
+                lastName:req?.body?.lastName,
+                email:req?.body?.email,
+                mobile:req?.body?.mobile
+            },
+            {
+                new: true
+            }
+        );
+        res.json(updateUser);
+        
+    }catch(err){    
+        throw new Error(err);
+    }
+
+})
+
+module.exports = {
+    createUser,
+    loginUser,
+    getAllUsers,
+    getUser,
+    deleteUser,
+    updateUser
+};
