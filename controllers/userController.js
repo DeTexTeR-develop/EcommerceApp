@@ -16,6 +16,7 @@ const createUser = expressAsyncHandler(async(req, res) => {
     };
 });
 
+
 const loginUser = expressAsyncHandler(async(req, res) => {
     const {email, password} = req.body;
     //check if user exists or not

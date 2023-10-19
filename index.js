@@ -4,7 +4,7 @@ const dbConnect = require('./config/dbConnect');
 const { errorHandler, notFound } = require('./middlewares/errorHandler');
 const app = express();
 const dotenv = require('dotenv').config();
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 3000;
 const authRouter = require('./routes/authRoutes');
 
 app.use(bodyParser.json());
