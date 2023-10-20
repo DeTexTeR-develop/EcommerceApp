@@ -1,6 +1,8 @@
 const expressAsyncHandler = require('express-async-handler');
 const { generateToken } = require('../config/jwtToken');
 const User = require('../models/userModel');
+const validateMongoId = require('../utils/validateMongoDbid');
+const {generateRefreshToken} = require('../config/refreshToken');
 
 const createUser = expressAsyncHandler(async (req, res) => {
     const email = req.body.email;
@@ -22,6 +24,20 @@ const loginUser = expressAsyncHandler(async (req, res) => {
     //check if user exists or not
     const findUser = await User.findOne({ email });
     if (findUser && await findUser.isPasswordMatched(password)) {
+        const refreshToken = await generateRefreshToken(findUser?.id);
+        const updatedUser = await User.findByIdAndUpdate(
+        findUser?.id, 
+        {
+            refreshToken: refreshToken
+        }, 
+        {
+            new:true
+        });
+    res.cookie('refreshToken', refreshToken,
+    {
+        httpOnly:true,
+        maxAge:72*60*60*1000
+    })
         res.json(
             {
                 id: findUser?._id,
@@ -52,7 +68,7 @@ const getAllUsers = expressAsyncHandler(async (req, res) => {
 
 const getUser = expressAsyncHandler(async (req, res) => {
     const { id } = req.params;
-    // console.log(id);
+    validateMongoId(id);
     try {
         const foundUser = await User.findById(id);
         res.json({
@@ -65,6 +81,8 @@ const getUser = expressAsyncHandler(async (req, res) => {
 
 const deleteUser = expressAsyncHandler(async (req, res) => {
     const { id } = req.params;
+    validateMongoId(id);
+
     try {
         const deletedUser = await User.findByIdAndDelete(id);
         res.json({
@@ -76,9 +94,11 @@ const deleteUser = expressAsyncHandler(async (req, res) => {
 });
 
 const updateUser = expressAsyncHandler(async (req, res) => {
-    const { _id } = req.user;
+    const { id } = req.user;
+    validateMongoId(id);
+
     try {
-        const updateUser = await User.findByIdAndUpdate(_id,
+        const updateUser = await User.findByIdAndUpdate(id,
             {
                 firstName: req?.body?.firstName,
                 lastName: req?.body?.lastName,
@@ -99,40 +119,44 @@ const updateUser = expressAsyncHandler(async (req, res) => {
 
 const blockUser = expressAsyncHandler(async (req, res) => {
     const { id } = req.params;
-    try{
+    validateMongoId(id);
+
+    try {
         const block = await User.findByIdAndUpdate(
             id,
             {
-                blocked:true
+                blocked: true
             },
             {
                 new: true
             });
-            res.json({
-                message:"user is blocked",
-            })
+        res.json({
+            message: "user is blocked",
+        })
     }
-    catch(err){
+    catch (err) {
         throw new Error("there was some error while blocking the user", err);
     }
 });
 
 const unblockUser = expressAsyncHandler(async (req, res) => {
     const { id } = req.params;
-    try{
-        const unblock =  await User.findByIdAndUpdate(
+    validateMongoId(id);
+
+    try {
+        const unblock = await User.findByIdAndUpdate(
             id,
             {
-                blocked:false
+                blocked: false
             },
             {
                 new: true
             });
-            res.json({
-                message:"user is unblocked",
-            })
+        res.json({
+            message: "user is unblocked",
+        })
     }
-    catch(err){
+    catch (err) {
         throw new Error("there was some error while unblocking the user", err);
     }
 });
