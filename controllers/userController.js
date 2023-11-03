@@ -2,7 +2,8 @@ const expressAsyncHandler = require('express-async-handler');
 const { generateToken } = require('../config/jwtToken');
 const User = require('../models/userModel');
 const validateMongoId = require('../utils/validateMongoDbid');
-const {generateRefreshToken} = require('../config/refreshToken');
+const { generateRefreshToken } = require('../config/refreshToken');
+const jwt = require('jsonwebtoken');
 
 const createUser = expressAsyncHandler(async (req, res) => {
     const email = req.body.email;
@@ -18,7 +19,6 @@ const createUser = expressAsyncHandler(async (req, res) => {
     };
 });
 
-
 const loginUser = expressAsyncHandler(async (req, res) => {
     const { email, password } = req.body;
     //check if user exists or not
@@ -26,18 +26,18 @@ const loginUser = expressAsyncHandler(async (req, res) => {
     if (findUser && await findUser.isPasswordMatched(password)) {
         const refreshToken = await generateRefreshToken(findUser?.id);
         const updatedUser = await User.findByIdAndUpdate(
-        findUser?.id, 
-        {
-            refreshToken: refreshToken
-        }, 
-        {
-            new:true
-        });
-    res.cookie('refreshToken', refreshToken,
-    {
-        httpOnly:true,
-        maxAge:72*60*60*1000
-    })
+            findUser?.id,
+            {
+                refreshToken: refreshToken
+            },
+            {
+                new: true
+            });
+        res.cookie('refreshToken', refreshToken,
+            {
+                httpOnly: true,
+                maxAge: 72 * 60 * 60 * 1000
+            })
         res.json(
             {
                 id: findUser?._id,
@@ -139,6 +139,8 @@ const blockUser = expressAsyncHandler(async (req, res) => {
     }
 });
 
+//to unblock a user
+
 const unblockUser = expressAsyncHandler(async (req, res) => {
     const { id } = req.params;
     validateMongoId(id);
@@ -160,6 +162,53 @@ const unblockUser = expressAsyncHandler(async (req, res) => {
         throw new Error("there was some error while unblocking the user", err);
     }
 });
+
+//to handle refresh token
+
+const handleRefreshToken = expressAsyncHandler(async (req, res) => {
+    const cookie = req.cookies;
+    if (!cookie?.refreshToken) throw new Error("There is no refresh token in the cookies");
+    const refreshToken = cookie.refreshToken;
+    console.log(refreshToken);
+    const user = await User.findOne({ refreshToken });
+    if (!user) throw new Error("No user with this refresh token is found!");
+    jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
+        if(err || user.id !== decoded.id){
+            throw new Error("There is something wrong with refresh token");
+        };
+        const accessToken = generateToken(user?._id);
+        res.json({accessToken});
+    });
+});
+
+// to logout user
+
+const logoutUser = expressAsyncHandler(async(req, res) => {
+    const cookie = req.cookies;
+    if (!cookie?.refreshToken) throw new Error("There is no refresh token in the cookies");
+    const refreshToken = cookie.refreshToken;
+    const user = await User.findOne({refreshToken});
+    if(!user){
+        req.clearCookie('refreshToken' ,{
+            httpOnly: true,
+            secure: true            
+        });
+    res.sendStatus(204);
+    };
+    await User.findOneAndUpdate({refreshToken}, {
+        refreshToken:""
+    })
+    // await User.findOneAndUpdate(refreshToken, {
+    //     refreshToken: "",
+    // });
+    res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true
+    });
+    res.sendStatus(204);
+});
+
+
 module.exports = {
     createUser,
     loginUser,
@@ -168,5 +217,7 @@ module.exports = {
     deleteUser,
     updateUser,
     blockUser,
-    unblockUser
+    unblockUser,
+    handleRefreshToken,
+    logoutUser
 };
