@@ -197,10 +197,7 @@ const logoutUser = expressAsyncHandler(async(req, res) => {
     };
     await User.findOneAndUpdate({refreshToken}, {
         refreshToken:""
-    })
-    // await User.findOneAndUpdate(refreshToken, {
-    //     refreshToken: "",
-    // });
+    });
     res.clearCookie("refreshToken", {
         httpOnly: true,
         secure: true
