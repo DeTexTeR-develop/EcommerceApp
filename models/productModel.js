@@ -36,9 +36,20 @@ const productSchema = new mongoose.Schema({
 	},
 	sold:{
 		type:Boolean,
-	default:0
+		default:0
+	},
+	rating:[
+	{
+		star:Number,
+		postedBy:{type: mongoose.Schema.Types.ObjectId}
+	}],
+	brand:{
+		type:String,
+		enum:["apple", "samsung", "lenevo"]
 	}
 
+}, {
+	timestamps:true
 });
 
 module.exports = mongoose.model('product', productSchema);
