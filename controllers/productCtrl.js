@@ -1,9 +1,13 @@
 const Product = require('../models/productModel');
 const expressAsyncHandler = require('express-async-handler');
 const validateMongoId = require('../utils/validateMongoDbid');
+const slugify = require('slugify');
 
 const createProduct = expressAsyncHandler(async(req, res) => {
 	try{
+		if(req.body.title){
+			req.body.slug = slugify(req.body.title);
+		};
 		const product = await Product.create(req.body);
 		res.json(product);
 	}catch(err){
@@ -43,7 +47,7 @@ const deleteProduct = expressAsyncHandler(async(req, res) => {
 		const product = await Product.findByIdAndDelete(id);
 		res.json({
 			message:"product deleted"
-		})
+		});
 
 	}catch(err){
 		throw new Error(err);
@@ -54,23 +58,13 @@ const updateProduct = expressAsyncHandler(async(req, res) => {
 	const {id} = req.params;
 	validateMongoId(id);
 	try{
-		const product = await Product.findByIdAndUpdate(id, 
-		{
-			title: req?.body?.title,
-            description: req?.body?.description,
-            slug: req?.body?.slug,
-            price: req?.body?.price,
-            category: req?.body?.category,
-            quantity: req?.body?.quantity,
-            images: req?.body?.images,
-            colour: req?.body?.colour,
-            sold: req?.body?.sold,
-            rating: req?.body?.rating,
-            brand: req?.body?.brand,
-		});
+		if(req.body.title){
+			req.body.slug = slugify(req.body.title);
+		};
+		const product = await Product.findByIdAndUpdate(id, req.body, {new:true});
 		res.json({
 			message:"product updated"
-		})
+		});
 	}catch(err){
 		throw new Error(err); 
 	}

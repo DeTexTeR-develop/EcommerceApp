@@ -21,8 +21,8 @@ const productSchema = new mongoose.Schema({
 		required:true
 	},
 	category:{
-		type:mongoose.Schema.Types.ObjectId,
-		ref:"Category"
+		type:String,
+		required:true
 	},
 	quantity:{
 		type:Number,
@@ -32,7 +32,7 @@ const productSchema = new mongoose.Schema({
 	},
 	colour:{
 		type:String,
-		enum:["Black", "red", "voilet"],
+		required:true
 	},
 	sold:{
 		type:Boolean,
@@ -45,7 +45,7 @@ const productSchema = new mongoose.Schema({
 	}],
 	brand:{
 		type:String,
-		enum:["apple", "samsung", "lenevo"]
+		required:true
 	}
 
 }, {
