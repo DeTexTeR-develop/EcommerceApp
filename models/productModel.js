@@ -36,7 +36,8 @@ const productSchema = new mongoose.Schema({
 	},
 	sold:{
 		type:Boolean,
-		default:0
+		default:0,
+		select:false
 	},
 	rating:[
 	{
