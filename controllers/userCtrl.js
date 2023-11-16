@@ -37,7 +37,7 @@ const loginUser = expressAsyncHandler(async (req, res) => {
             {
                 httpOnly: true,
                 maxAge: 72 * 60 * 60 * 1000
-            })
+            });
         res.json(
             {
                 id: findUser?._id,
@@ -50,7 +50,7 @@ const loginUser = expressAsyncHandler(async (req, res) => {
         );
     } else {
         throw new Error("Invalid Credentials");
-    }
+    };
 });
 
 //to get all the users
@@ -61,7 +61,7 @@ const getAllUsers = expressAsyncHandler(async (req, res) => {
         res.json(allUsers);
     } catch (err) {
         throw new Error(err);
-    }
+    };
 });
 
 //to get a single user
@@ -76,7 +76,7 @@ const getUser = expressAsyncHandler(async (req, res) => {
         });
     } catch (err) {
         throw new Error(err);
-    }
+    };
 });
 
 const deleteUser = expressAsyncHandler(async (req, res) => {
@@ -90,7 +90,7 @@ const deleteUser = expressAsyncHandler(async (req, res) => {
         });
     } catch (err) {
         throw new Error(err);
-    }
+    };
 });
 
 const updateUser = expressAsyncHandler(async (req, res) => {
@@ -113,7 +113,7 @@ const updateUser = expressAsyncHandler(async (req, res) => {
 
     } catch (err) {
         throw new Error(err);
-    }
+    };
 
 });
 
@@ -132,7 +132,7 @@ const blockUser = expressAsyncHandler(async (req, res) => {
             });
         res.json({
             message: "user is blocked",
-        })
+        });
     }
     catch (err) {
         throw new Error("there was some error while blocking the user", err);
