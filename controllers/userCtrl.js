@@ -205,6 +205,20 @@ const logoutUser = expressAsyncHandler(async(req, res) => {
     res.sendStatus(204);
 });
 
+const changePassword = expressAsyncHandler(async(req, res) => {
+    const { _id } = req.user;
+    const {password} = req.body;
+    const user = await User.findById(_id);
+    validateMongoId(_id);
+    if(password){
+        user.password = password;
+        const updatedPassword = await user.save();
+        res.json(updatedPassword);
+    }else{
+        res.json(user);
+    }
+})
+
 
 module.exports = {
     createUser,
@@ -216,5 +230,6 @@ module.exports = {
     blockUser,
     unblockUser,
     handleRefreshToken,
-    logoutUser
+    logoutUser,
+    changePassword
 };
