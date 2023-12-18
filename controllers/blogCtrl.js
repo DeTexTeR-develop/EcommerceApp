@@ -8,9 +8,18 @@ const getABlog = expressAsyncHandler(async(req,res) => {
     validateMongoId(id);
     try{
         const blog = await Blog.findById(id);
+        await Blog.findByIdAndUpdate(
+            id, 
+            {
+                $inc : {numViews : 1}
+            },
+            {
+                new : true
+            }
+        )
         res.json(blog);
     }catch(err){
-        throw new Error("error in finding a Blog", err)
+        throw new Error(err)
     }
 });
 
@@ -19,7 +28,7 @@ const getAllBlogs = expressAsyncHandler(async(req, res) => {
         const blogs = await Blog.find();
         res.json(blogs);
     }catch(err){
-        throw new Error("error in loading blogs", err);
+        throw new Error( err);
     }
 });
 
@@ -28,30 +37,82 @@ const createBlog = expressAsyncHandler(async (req, res) => {
       const newBlog = await Blog.create(req.body);
       res.json(newBlog);
     } catch (err) {
-        throw new Error("error in creating blog", err);
+        throw new Error(err);
     }
 });
 
 const updateBlog = expressAsyncHandler(async(req, res) => {
     const {id} = req.params;
-validateMongoId(id);
+    validateMongoId(id);
     try{
         const blog = await Blog.findByIdAndUpdate(id , req.body, { new:true });
         res.json({message:'successfully updated', blog});
     }catch(err){
-        throw new Error("error in updating blog", err);
+        throw new Error(err);
     }
 });
 
-const deleteBog = expressAsyncHandler(async(req, res)=> {
+const deleteBlog = expressAsyncHandler(async(req, res)=> {
     const {id} = req.params;
     validateMongoId(id);
     try{
         const blog = await Blog.findByIdAndDelete(id, req.body);
         res.json({message:"successfully deleted", blog});
     }catch(err){
-        throw new Error("error in deleting Blog", err);
+        throw new Error(err);
     }
-})
+});
 
-module.exports = {getABlog, getAllBlogs, createBlog, updateBlog, deleteBog};
+const likeBlog = expressAsyncHandler(async(req, res) => {
+    const { blogId } = req.body;
+    validateMongoId(blogId);
+    const loginUserId = req.user?._id;
+    try{
+        const blog = await Blog.findById(blogId);
+        const isLiked = blog?.isLiked;
+        
+        const alreadyDisliked = blog?.dislikes?.find(
+            (userId) => userId?.equals(loginUserId)
+        );
+        if(alreadyDisliked){
+            const blog = await Blog.findByIdAndUpdate(blogId, {
+                $pull: {dislikes : loginUserId },
+                isDisliked: false
+            }, 
+            {
+                new : true
+            });
+
+            res.json(blog);
+        };
+        if(isLiked){
+            const blog = await Blog.findByIdAndUpdate(blogId, {
+                $pull: {isLiked : loginUserId },
+                isLiked: false
+            }, 
+            {
+                new : true
+            });
+
+            res.json(blog);
+        }else{
+            const blog = await Blog.findByIdAndUpdate(blogId, {
+                $push : {isLiked : loginUserId },
+                isLiked : true
+            }, 
+            {
+                new : true
+            });
+
+            res.json(blog);
+        };
+    }catch(err){
+        throw new Error(err);
+    }
+});
+
+const dislikeBlog = expressAsyncHandler(async(req, res) => {
+
+});
+
+module.exports = {getABlog, getAllBlogs, createBlog, updateBlog, deleteBlog , likeBlog, dislikeBlog};
