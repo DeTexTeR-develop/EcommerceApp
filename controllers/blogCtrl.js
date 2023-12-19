@@ -66,14 +66,15 @@ const deleteBlog = expressAsyncHandler(async(req, res)=> {
 const likeBlog = expressAsyncHandler(async(req, res) => {
     const { blogId } = req.body;
     validateMongoId(blogId);
-    const loginUserId = req.user?._id;
+    const loginUserId = req?.user?._id;
     try{
         const blog = await Blog.findById(blogId);
         const isLiked = blog?.isLiked;
-        
+         
         const alreadyDisliked = blog?.dislikes?.find(
-            (userId) => userId?.equals(loginUserId)
+            (userId) => userId?.toString() === loginUserId?.toString()
         );
+
         if(alreadyDisliked){
             const blog = await Blog.findByIdAndUpdate(blogId, {
                 $pull: {dislikes : loginUserId },
@@ -87,7 +88,7 @@ const likeBlog = expressAsyncHandler(async(req, res) => {
         };
         if(isLiked){
             const blog = await Blog.findByIdAndUpdate(blogId, {
-                $pull: {isLiked : loginUserId },
+                $pull: {likes : loginUserId },
                 isLiked: false
             }, 
             {
@@ -97,7 +98,7 @@ const likeBlog = expressAsyncHandler(async(req, res) => {
             res.json(blog);
         }else{
             const blog = await Blog.findByIdAndUpdate(blogId, {
-                $push : {isLiked : loginUserId },
+                $push : {likes : loginUserId },
                 isLiked : true
             }, 
             {
