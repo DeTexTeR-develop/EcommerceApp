@@ -10,6 +10,7 @@ const productRouter = require('./routes/productRoutes');
 const blogRouter = require('./routes/blogRoutes');
 const prodCategoryRouter = require('./routes/prodCategoryRoutes');
 const blogCategoryRouter = require('./routes/blogCategoryRoutes');
+const brandRouter = require('./routes/brandRoutes');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 
@@ -26,6 +27,7 @@ app.use("/api/p", productRouter);
 app.use("/api/b", blogRouter);
 app.use("/api/bc", blogCategoryRouter);
 app.use("/api/pc", prodCategoryRouter);
+app.use("/api/br", brandRouter);
 
 
 app.use(errorHandler);
