@@ -8,6 +8,8 @@ const port = process.env.PORT || 3000;
 const authRouter = require('./routes/authRoutes');
 const productRouter = require('./routes/productRoutes');
 const blogRouter = require('./routes/blogRoutes');
+const prodCategoryRouter = require('./routes/prodCategoryRoutes');
+const blogCategoryRouter = require('./routes/blogCategoryRoutes');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 
@@ -22,6 +24,8 @@ dbConnect();
 app.use("/api/u", authRouter);
 app.use("/api/p", productRouter);
 app.use("/api/b", blogRouter);
+app.use("/api/bc", blogCategoryRouter);
+app.use("/api/pc", prodCategoryRouter);
 
 
 app.use(errorHandler);
