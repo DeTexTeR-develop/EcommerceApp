@@ -65,14 +65,14 @@ userSchema.pre("save", async function (next){
 
 userSchema.methods.isPasswordMatched = async function(enteredPassword){
     return await bcrypt.compare(enteredPassword, this.password);
-}
+};
 
 userSchema.methods.generateResetToken = async function(){
     const resetToken = crypto.randomBytes(32).toString("hex");
     this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest("hex");
     this.passwordResetExpired=Date.now() + 60 * 30 * 1000;
     return resetToken;
-}
+};
 
 
 //Export the model

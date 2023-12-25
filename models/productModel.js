@@ -47,6 +47,10 @@ const productSchema = new mongoose.Schema({
 	brand:{
 		type:String,
 		required:true
+	},
+	totalRatings:{
+		type:String, 
+		default: 0
 	}
 
 }, {
