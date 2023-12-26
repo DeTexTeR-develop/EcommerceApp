@@ -118,7 +118,6 @@ const addToWishlist = expressAsyncHandler(async(req, res) => {
 	try{
 		const user = await User.findById(_id);
 		const alreadyAddedToWishlist = user.wishlist.find((id) => id.toString() === prodId);
-		// console.log(alreadyAddedToWishlist)
 		if(alreadyAddedToWishlist){
 			let user = await User.findByIdAndUpdate(_id, {
 				$pull:{wishlist: prodId}
@@ -137,21 +136,21 @@ const addToWishlist = expressAsyncHandler(async(req, res) => {
 
 const rating = expressAsyncHandler(async(req, res) => {
 	const {_id} = req.user;
-	const {star, prodId} = req.body;
+	const {star, prodId, comment} = req.body;
 	try{
 		const product = await Product.findById(prodId);
 		const alreadyRated = product.rating.find((userId) => userId.postedBy.toString() === _id.toString());
 		if(alreadyRated){
 			const updateRating = await Product.updateOne({
-				ratings: {$elemMatch: alreadyRated},
+				rating: {$elemMatch: alreadyRated},
 			},{
-				$set: {"ratings.$.star": star}
+				$set: {"rating.$.star": star, "rating.$.comment": comment}
 			}, {
 				new : true
 			});
 		}else{
 			const product = await Product.findByIdAndUpdate(prodId, {
-				$push: {rating: {star : star, postedBy: _id}}
+				$push: {rating: {star : star, postedBy: _id, comment: comment}}
 			}, {new: true});
 		}
 		const getAllRatingOfProduct = await Product.findById(prodId);
