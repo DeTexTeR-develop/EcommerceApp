@@ -5,20 +5,24 @@ const { errorHandler, notFound } = require('./middlewares/errorHandler');
 const app = express();
 const dotenv = require('dotenv').config();
 const port = process.env.PORT || 3000;
+
+
 const authRouter = require('./routes/authRoutes');
 const productRouter = require('./routes/productRoutes');
 const blogRouter = require('./routes/blogRoutes');
 const prodCategoryRouter = require('./routes/prodCategoryRoutes');
 const blogCategoryRouter = require('./routes/blogCategoryRoutes');
 const brandRouter = require('./routes/brandRoutes');
+const coupanRouter = require('./routes/coupanRoutes');
+
+
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 
 
-
 app.use(morgan("dev"));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended:false}));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 dbConnect();
 
@@ -28,6 +32,7 @@ app.use("/api/b", blogRouter);
 app.use("/api/bc", blogCategoryRouter);
 app.use("/api/pc", prodCategoryRouter);
 app.use("/api/br", brandRouter);
+app.use("/api/c", coupanRouter);
 
 
 app.use(errorHandler);
