@@ -167,4 +167,17 @@ const rating = expressAsyncHandler(async (req, res) => {
 	}
 });
 
-module.exports = { createProduct, getProduct, getAllProducts, deleteProduct, updateProduct, addToWishlist, rating };
+const uploadimages = expressAsyncHandler(async (req, res) => {
+	console.log(req.files);
+})
+
+module.exports = {
+	createProduct,
+	getProduct,
+	getAllProducts,
+	deleteProduct,
+	updateProduct,
+	addToWishlist,
+	rating,
+	uploadimages
+};
