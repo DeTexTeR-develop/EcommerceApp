@@ -3,6 +3,8 @@ const expressAsyncHandler = require('express-async-handler');
 const validateMongoId = require('../utils/validateMongoDbid');
 const slugify = require('slugify');
 const User = require('../models/userModel');
+const CloudinaryUplodImg = require('../utils/cloudinary');
+const fs = require('fs');
 
 const createProduct = expressAsyncHandler(async (req, res) => {
 	try {
@@ -168,8 +170,27 @@ const rating = expressAsyncHandler(async (req, res) => {
 });
 
 const uploadimages = expressAsyncHandler(async (req, res) => {
-	console.log(req.files);
-})
+	try {
+		const uploader = (path) => CloudinaryUplodImg(path, "images");
+		const urls = [];
+		const files = req.files;
+		for (const file of files) {
+			const { path } = file;
+			const newpath = await uploader(path);
+			console.log(newpath);
+			urls.push(newpath);
+			fs.unlinkSync(path);
+		}
+		const images = urls.map((file) => {
+			return file;
+		});
+		res.json(images);
+	} catch (error) {
+		throw new Error(error);
+	}
+});
+
+
 
 module.exports = {
 	createProduct,

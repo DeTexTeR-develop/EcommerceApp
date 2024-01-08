@@ -1,6 +1,6 @@
-const multer = require('multer');
-const sharp = require('sharp');
-const path = require('path');
+const multer = require("multer");
+const sharp = require("sharp");
+const path = require("path");
 const fs = require("fs");
 
 const storage = multer.diskStorage({
@@ -13,7 +13,6 @@ const storage = multer.diskStorage({
     },
 });
 
-
 const multerFilter = (req, file, cb) => {
     if (file.mimetype.startsWith("image")) {
         cb(null, true);
@@ -22,41 +21,39 @@ const multerFilter = (req, file, cb) => {
     }
 };
 
-
 const uploadPhoto = multer({
     storage: storage,
     fileFilter: multerFilter,
-    limits: { fileSize: 10000000 },
+    limits: { fileSize: 1000000 },
 });
 
 const productImgSize = async (req, res, next) => {
     if (!req.files) return next();
-    await Promise.all(req.files.map(async (file) => {
-        await sharp(file.path)
-            .resize(300, 300)
-            .toFormat('jpeg')
-            .jpeg({ quality: 90 })
-            .toFile(`public/images/products/${file.filename}`)
-        fs.unlinkSync(`public/images/products/${file.filename}`);
-    }));
+    await Promise.all(
+        req.files.map(async (file) => {
+            await sharp(file.path)
+                .resize(300, 300)
+                .toFormat("jpeg")
+                .jpeg({ quality: 90 })
+                .toFile(`public/images/products/${file.filename}`);
+            fs.unlinkSync(`public/images/products/${file.filename}`);
+        })
+    );
     next();
 };
 
-const blogsImgSize = async (req, res, next) => {
+const blogImgSize = async (req, res, next) => {
     if (!req.files) return next();
-    await Promise.all(req.files.map(async (file) => {
-        await sharp(file.path)
-            .resize(300, 300)
-            .toFormat('jpeg')
-            .jpeg({ quality: 90 })
-            .toFile(`public/images/blogs/${files.filename}`);
-        fs.unlinkSync(`public/images/products/${file.filename}`);
-
-    }));
+    await Promise.all(
+        req.files.map(async (file) => {
+            await sharp(file.path)
+                .resize(300, 300)
+                .toFormat("jpeg")
+                .jpeg({ quality: 90 })
+                .toFile(`public/images/blogs/${file.filename}`);
+            fs.unlinkSync(`public/images/blogs/${file.filename}`);
+        })
+    );
     next();
-}
-
-
-
-module.exports = { uploadPhoto, productImgSize, blogsImgSize };
-
+};
+module.exports = { uploadPhoto, productImgSize, blogImgSize };
