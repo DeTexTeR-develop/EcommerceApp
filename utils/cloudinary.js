@@ -15,7 +15,6 @@ const CloudinaryUplodImg = async (fileToUpload) => {
         const result = await cloudinary.uploader.upload(fileToUpload, {
             resource_type: 'auto'
         });
-        console.log(result);
         return {
             url: result.secure_url
         };

@@ -170,6 +170,7 @@ const rating = expressAsyncHandler(async (req, res) => {
 });
 
 const uploadimages = expressAsyncHandler(async (req, res) => {
+	const { id } = req.params;
 	try {
 		const uploader = (path) => CloudinaryUplodImg(path, "images");
 		const urls = [];
@@ -177,14 +178,15 @@ const uploadimages = expressAsyncHandler(async (req, res) => {
 		for (const file of files) {
 			const { path } = file;
 			const newpath = await uploader(path);
-			console.log(newpath);
 			urls.push(newpath);
 			fs.unlinkSync(path);
 		}
-		const images = urls.map((file) => {
-			return file;
-		});
-		res.json(images);
+		const foundProduct = await Product.findByIdAndUpdate(id, {
+			images: urls.map((file) => {
+				return file;
+			})
+		}, { new: true })
+		res.json(foundProduct);
 	} catch (error) {
 		throw new Error(error);
 	}
