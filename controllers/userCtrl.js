@@ -4,7 +4,7 @@ const User = require('../models/userModel');
 const validateMongoId = require('../utils/validateMongoDbid');
 const { generateRefreshToken } = require('../config/refreshToken');
 const jwt = require('jsonwebtoken');
-const {sendEmail} = require('./emailCtrl');
+const { sendEmail } = require('./emailCtrl');
 const crypto = require('crypto');
 
 const createUser = expressAsyncHandler(async (req, res) => {
@@ -54,6 +54,44 @@ const loginUser = expressAsyncHandler(async (req, res) => {
         throw new Error("Invalid Credentials");
     };
 });
+
+//login admin
+
+const loginAdminCtrl = expressAsyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+    //check if user exists or not
+    const findAdmin = await User.findOne({ email });
+    if (findAdmin.role !== 'admin') throw new Error("not Authorized");
+    if (findAdmin && await findAdmin.isPasswordMatched(password)) {
+        const refreshToken = await generateRefreshToken(findAdmin?.id);
+        const updatedAdmins = await User.findByIdAndUpdate(
+            findAdmin?.id,
+            {
+                refreshToken: refreshToken
+            },
+            {
+                new: true
+            });
+        res.cookie('refreshToken', refreshToken,
+            {
+                httpOnly: true,
+                maxAge: 72 * 60 * 60 * 1000
+            });
+        res.json(
+            {
+                id: findAdmin?._id,
+                firstName: findAdmin?.firstName,
+                lastName: findAdmin?.lastName,
+                email: findAdmin?.email,
+                mobile: findAdmin?.mobile,
+                token: generateToken(findAdmin?._id)
+            }
+        );
+    } else {
+        throw new Error("Invalid Credentials");
+    };
+});
+
 
 //to get all the users
 
@@ -175,30 +213,30 @@ const handleRefreshToken = expressAsyncHandler(async (req, res) => {
     const user = await User.findOne({ refreshToken });
     if (!user) throw new Error("No user with this refresh token is found!");
     jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
-        if(err || user.id !== decoded.id){
+        if (err || user.id !== decoded.id) {
             throw new Error("There is something wrong with refresh token");
         };
         const accessToken = generateToken(user?._id);
-        res.json({accessToken});
+        res.json({ accessToken });
     });
 });
 
 // to logout user
 
-const logoutUser = expressAsyncHandler(async(req, res) => {
+const logoutUser = expressAsyncHandler(async (req, res) => {
     const cookie = req.cookies;
     if (!cookie?.refreshToken) throw new Error("There is no refresh token in the cookies");
     const refreshToken = cookie.refreshToken;
-    const user = await User.findOne({refreshToken});
-    if(!user){
-        req.clearCookie('refreshToken' ,{
+    const user = await User.findOne({ refreshToken });
+    if (!user) {
+        req.clearCookie('refreshToken', {
             httpOnly: true,
-            secure: true            
+            secure: true
         });
-    res.sendStatus(204);
+        res.sendStatus(204);
     };
-    await User.findOneAndUpdate({refreshToken}, {
-        refreshToken:""
+    await User.findOneAndUpdate({ refreshToken }, {
+        refreshToken: ""
     });
     res.clearCookie("refreshToken", {
         httpOnly: true,
@@ -207,55 +245,55 @@ const logoutUser = expressAsyncHandler(async(req, res) => {
     res.sendStatus(204);
 });
 
-const changePassword = expressAsyncHandler(async(req, res) => {
+const changePassword = expressAsyncHandler(async (req, res) => {
     const { _id } = req.user;
-    const {password} = req.body;
+    const { password } = req.body;
     const user = await User.findById(_id);
     validateMongoId(_id);
-    if(password){
+    if (password) {
         user.password = password;
         const updatedPassword = await user.save();
         res.json(updatedPassword);
-    }else{
+    } else {
         res.json(user);
     }
 });
 
-const forgetPasswordToken = expressAsyncHandler(async(req, res) => {
-    const {email} = req.user;
-    const user = await User.findOne({email});
-    if(!user) throw new Error("User not found");
-    try{
+const forgetPasswordToken = expressAsyncHandler(async (req, res) => {
+    const { email } = req.user;
+    const user = await User.findOne({ email });
+    if (!user) throw new Error("User not found");
+    try {
         const token = await user.generateResetToken();
         await user.save();
         const resetUrl = `Hey, click on this link to reset password. This link is valid for 10mins. <a href='http//localhost:3000/api/u/reset-password/${token}'>click</a>`;
         const data = {
-            to:email,
-            subject:'reset password',
-            text:'Hey, this is to reset your password',
-            html:resetUrl,
+            to: email,
+            subject: 'reset password',
+            text: 'Hey, this is to reset your password',
+            html: resetUrl,
         };
         sendEmail(data);
         res.json(token);
-    }catch(err){
-        throw new Error( err);
+    } catch (err) {
+        throw new Error(err);
     }
-}); 
+});
 
-const resetPassword = expressAsyncHandler(async(req, res) => {
-    const {password} = req.body;
-    const {token} = req.params;
+const resetPassword = expressAsyncHandler(async (req, res) => {
+    const { password } = req.body;
+    const { token } = req.params;
     const hashedToken = await crypto.createHash('sha256').update(token).digest('hex');
     const user = await User.findOne({
         passwordResetToken: hashedToken,
-        passwordResetExpired: { $gt:Date.now() }
+        passwordResetExpired: { $gt: Date.now() }
     });
-    if(!user) throw new Error("token expired!");
+    if (!user) throw new Error("token expired!");
     user.password = password;
     user.passwordResetToken = undefined;
     user.passwordResetExpired = undefined;
     user.save();
-    res.json(user); 
+    res.json(user);
 })
 
 
@@ -272,5 +310,6 @@ module.exports = {
     logoutUser,
     changePassword,
     forgetPasswordToken,
-    resetPassword
+    resetPassword,
+    loginAdminCtrl
 };
