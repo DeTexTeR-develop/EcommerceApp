@@ -294,7 +294,17 @@ const resetPassword = expressAsyncHandler(async (req, res) => {
     user.passwordResetExpired = undefined;
     user.save();
     res.json(user);
-})
+});
+
+const getWishlist = expressAsyncHandler(async (req, res) => {
+    const { _id } = req.user;
+    try {
+      const findUser = await User.findById(_id).populate("wishlist");
+      res.json(findUser);
+    } catch (error) {
+      throw new Error(error);
+    }
+  });
 
 
 module.exports = {
@@ -311,5 +321,6 @@ module.exports = {
     changePassword,
     forgetPasswordToken,
     resetPassword,
-    loginAdminCtrl
+    loginAdminCtrl,
+    getWishlist
 };
