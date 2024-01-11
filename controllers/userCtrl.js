@@ -168,6 +168,10 @@ const saveAddress = expressAsyncHandler(async (req, res) => {
     validateMongoId(_id);
     try {
         const { address } = req.body;
+        const foundUser = await User.findById(_id);
+        if (foundUser.address.includes(address)) {
+            return res.status(400).json({ message: 'Address already exists' });
+        };
         const updatedUser = await User.findByIdAndUpdate(
             _id,
             {
