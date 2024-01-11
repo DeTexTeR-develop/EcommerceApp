@@ -119,6 +119,8 @@ const getUser = expressAsyncHandler(async (req, res) => {
     };
 });
 
+//delete user
+
 const deleteUser = expressAsyncHandler(async (req, res) => {
     const { id } = req.params;
     validateMongoId(id);
@@ -132,6 +134,8 @@ const deleteUser = expressAsyncHandler(async (req, res) => {
         throw new Error(err);
     };
 });
+
+//update user
 
 const updateUser = expressAsyncHandler(async (req, res) => {
     const { id } = req.user;
@@ -156,6 +160,29 @@ const updateUser = expressAsyncHandler(async (req, res) => {
     };
 
 });
+
+//save address
+
+const saveAddress = expressAsyncHandler(async (req, res) => {
+    const { _id } = req.user;
+    validateMongoId(_id);
+    try {
+        const { address } = req.body;
+        const updatedUser = await User.findByIdAndUpdate(
+            _id,
+            {
+                $push: { address: { $each: [address] } },
+            },
+            { new: true }
+        );
+        res.json(updatedUser);
+    } catch (err) {
+        throw new Error(err);
+    }
+});
+
+
+//block user
 
 const blockUser = expressAsyncHandler(async (req, res) => {
     const { id } = req.params;
@@ -299,12 +326,12 @@ const resetPassword = expressAsyncHandler(async (req, res) => {
 const getWishlist = expressAsyncHandler(async (req, res) => {
     const { _id } = req.user;
     try {
-      const findUser = await User.findById(_id).populate("wishlist");
-      res.json(findUser);
+        const findUser = await User.findById(_id).populate("wishlist");
+        res.json(findUser);
     } catch (error) {
-      throw new Error(error);
+        throw new Error(error);
     }
-  });
+});
 
 
 module.exports = {
@@ -322,5 +349,6 @@ module.exports = {
     forgetPasswordToken,
     resetPassword,
     loginAdminCtrl,
-    getWishlist
+    getWishlist,
+    saveAddress
 };
