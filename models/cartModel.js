@@ -11,12 +11,8 @@ const cartSchema = new mongoose.Schema({
         price: Number
     },
     ],
-    paymentIntent: {},
-    orderStatus: {
-        type: String,
-        default: "not processed",
-        enum: [],
-    },
+    cartTotal: Number,
+    totalAfterDiscount: Number,
     orderBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
