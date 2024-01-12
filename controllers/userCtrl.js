@@ -367,14 +367,21 @@ const cart = expressAsyncHandler(async (req, res) => {
             object.count = cart[i].count;
             object.color = cart[i].color;
             let getPrice = await Product.findById(cart[i]._id).select("price").exec();
+            console.log(getPrice)
             object.price = getPrice.price;
             products.push(object);
         }
         let cartTotal = 0;
         for (let i = 0; i < products.length; i++) {
             cartTotal = cartTotal + products[i].price * products[i].count;
-        }
-        res.json(products);
+        };
+
+        const newCart = await new Cart({
+            products,
+            cartTotal,
+            orderBy: user?._id
+        }).save();
+        res.json(newCart);
     } catch (err) {
         throw new Error(err);
     }
