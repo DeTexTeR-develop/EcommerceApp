@@ -13,7 +13,10 @@ const { createUser,
     loginAdminCtrl,
     getWishlist,
     saveAddress,
-    cart } = require('../controllers/userCtrl');
+    cart,
+    getUserCart,
+    emptyCart,
+    applyCoupan } = require('../controllers/userCtrl');
 const router = express.Router();
 const { authMiddleware, isAdmin } = require('../middlewares/authmiddleware');
 
@@ -28,8 +31,11 @@ router.put("/save-address", authMiddleware, saveAddress);
 router.get("/get-users", authMiddleware, getAllUsers);
 router.get("/refresh", handleRefreshToken);
 router.get("/logout", logoutUser);
-router.get("/get-wishlist", authMiddleware, getWishlist)
+router.get("/get-wishlist", authMiddleware, getWishlist);
+router.get("/get-user-cart", authMiddleware, getUserCart);
 router.get("/:id", authMiddleware, isAdmin, getUser);
+router.post("/apply-coupan", authMiddleware, applyCoupan);
+router.delete("/empty-cart", authMiddleware, emptyCart);
 router.delete("/:id", authMiddleware, deleteUser);
 router.put("/edit-user", authMiddleware, updateUser);
 router.put("/block-user/:id", authMiddleware, isAdmin, blockUser);

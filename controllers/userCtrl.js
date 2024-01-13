@@ -2,6 +2,7 @@ const expressAsyncHandler = require('express-async-handler');
 const { generateToken } = require('../config/jwtToken');
 const User = require('../models/userModel');
 const Product = require('../models/productModel');
+const Coupan = require('../models/couponModel');
 const Cart = require('../models/cartModel');
 const validateMongoId = require('../utils/validateMongoDbid');
 const { generateRefreshToken } = require('../config/refreshToken');
@@ -385,8 +386,58 @@ const cart = expressAsyncHandler(async (req, res) => {
     } catch (err) {
         throw new Error(err);
     }
-})
+});
 
+//get user cart
+
+const getUserCart = expressAsyncHandler(async (req, res) => {
+    const { _id } = req.user;
+    validateMongoId(_id);
+    try {
+        const userCart = await Cart.findOne({ orderBy: _id }).populate("products.product");
+        res.json(userCart)
+    } catch (err) {
+        throw new Error(err);
+    }
+});
+
+//to remove products from cart
+
+const emptyCart = expressAsyncHandler(async (req, res) => {
+    const { _id } = req.user;
+    validateMongoId(_id);
+    try {
+        const user = await User.findById(_id);
+        const cart = await Cart.findOneAndRemove({ orderBy: user._id });
+        res.json(cart)
+    } catch (err) {
+        throw new Error(err);
+    }
+});
+
+//apply coupan
+
+const applyCoupan = expressAsyncHandler(async (req, res) => {
+    const { _id } = req.user;
+    const { coupan } = req.body;
+    try {
+        const validCoupan = await Coupan.findById(coupan);
+        if (validCoupan == null) res.json("Invalid Coupan");
+        const user = await User.findById(_id);
+        let { cartTotal } = await Cart.findOne({ orderBy: user._id }).populate("products.product");
+        totalAfterDiscount = (cartTotal - (validCoupan.discount / 100) * cartTotal).toFixed(2);
+        await Cart.findOneAndUpdate({ orderBy: user._id }, { totalAfterDiscount }, { new: true });
+        res.json(totalAfterDiscount)
+    } catch (err) {
+        throw new Error(err);
+    }
+});
+
+//hangle order function
+
+const createOrder = expressAsyncHandler(async (req, res) => {
+
+});
 
 module.exports = {
     createUser,
@@ -405,5 +456,9 @@ module.exports = {
     loginAdminCtrl,
     getWishlist,
     saveAddress,
-    cart
+    cart,
+    getUserCart,
+    emptyCart,
+    applyCoupan,
+    createOrder
 };
