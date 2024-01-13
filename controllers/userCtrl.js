@@ -484,6 +484,7 @@ const createOrder = expressAsyncHandler(async (req, res) => {
 //helper function to clear the cart after order completetion
 
 const emptyCartHelper = async (userId) => {
+    validateMongoId(userId);
     try {
         const user = await User.findById(userId);
         const cart = await Cart.findOneAndRemove({ orderBy: user._id });
@@ -492,6 +493,45 @@ const emptyCartHelper = async (userId) => {
         throw new Error(err);
     }
 };
+
+//to get order details or order history
+
+const getOrders = expressAsyncHandler(async (req, res) => {
+    const { _id } = req.user;
+    validateMongoId(_id);
+    try {
+        const userorders = await Order.findOne({ orderBy: _id })
+            .populate("orderBy")
+            .exec();
+        res.json(userorders);
+    } catch (error) {
+        throw new Error(error);
+    }
+});
+
+const getAllOrders = expressAsyncHandler(async (req, res) => {
+    try {
+        const alluserorders = await Order.find()
+            .populate("orderBy")
+            .exec();
+        res.json(alluserorders);
+    } catch (error) {
+        throw new Error(error);
+    }
+});
+
+const getOrderByUserId = expressAsyncHandler(async (req, res) => {
+    const { id } = req.params;
+    validateMongoId(id);
+    try {
+        const userorders = await Order.findOne({ orderby: id })
+            .populate("orderBy")
+            .exec();
+        res.json(userorders);
+    } catch (error) {
+        throw new Error(error);
+    }
+});
 
 module.exports = {
     createUser,
@@ -514,5 +554,8 @@ module.exports = {
     getUserCart,
     emptyCart,
     applyCoupan,
-    createOrder
+    createOrder,
+    getOrders,
+    getAllOrders,
+    getOrderByUserId
 };
