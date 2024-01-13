@@ -1,9 +1,11 @@
 const expressAsyncHandler = require('express-async-handler');
+const uniqid = require('uniqid');
 const { generateToken } = require('../config/jwtToken');
 const User = require('../models/userModel');
 const Product = require('../models/productModel');
 const Coupan = require('../models/couponModel');
 const Cart = require('../models/cartModel');
+const Order = require('../models/orderModel');
 const validateMongoId = require('../utils/validateMongoDbid');
 const { generateRefreshToken } = require('../config/refreshToken');
 const jwt = require('jsonwebtoken');
@@ -433,11 +435,63 @@ const applyCoupan = expressAsyncHandler(async (req, res) => {
     }
 });
 
-//hangle order function
+//hangle order function for cash on delivery
 
 const createOrder = expressAsyncHandler(async (req, res) => {
+    const { COD, coupanApplied } = req.body;
+    const { _id } = req.user;
+    validateMongoId(_id);
+    try {
+        if (!COD) throw new Error("Cash On Delivery order failed");
+        const user = await User.findById(_id);
+        let userCart = await Cart.findOne({ orderBy: user._id });
+        let finalAmount = 0;
+        if (coupanApplied && userCart.totalAfterDiscount) {
+            finalAmount = userCart.totalAfterDiscount;
+        } else {
+            finalAmount = user.cartTotal;
+        };
+        let newOrder = await new Order({
+            products: userCart.products,
+            paymentIntent: {
+                id: uniqid(),
+                method: "COD",
+                amount: finalAmount,
+                status: "Cash on Delivery",
+                created: Date.now(),
+                currency: "usd",
+            },
+            orderStatus: "Cash On Delivery",
+            orderBy: user._id
+        }).save();
+        let update = userCart.products.map((item) => {
+            return {
+                updateOne: {
+                    filter: { _id: item.product._id },
+                    update: { $inc: { quantity: -item.count, sold: +item.count } },
+                },
+            };
+        });
+        const updated = await Product.bulkWrite(update, {});
+        await emptyCartHelper(user._id);
+        res.json({ message: "success" });
 
+    } catch (err) {
+        throw new Error(err);
+    }
 });
+
+//helper function to clear the cart after order completetion
+
+const emptyCartHelper = async (userId) => {
+    try {
+        const user = await User.findById(userId);
+        const cart = await Cart.findOneAndRemove({ orderBy: user._id });
+        return cart;
+    } catch (err) {
+        throw new Error(err);
+    }
+};
 
 module.exports = {
     createUser,

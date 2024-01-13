@@ -19,7 +19,8 @@ const orderSchema = new mongoose.Schema({
             "processing",
             "dispatched",
             "cancelled",
-            "delivered"
+            "delivered",
+            "Cash On Delivery"
         ],
     },
     orderBy: {

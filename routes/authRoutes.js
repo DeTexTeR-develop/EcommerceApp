@@ -16,7 +16,8 @@ const { createUser,
     cart,
     getUserCart,
     emptyCart,
-    applyCoupan } = require('../controllers/userCtrl');
+    applyCoupan,
+    createOrder } = require('../controllers/userCtrl');
 const router = express.Router();
 const { authMiddleware, isAdmin } = require('../middlewares/authmiddleware');
 
@@ -24,6 +25,7 @@ router.post("/register", createUser);
 router.post("/login", loginUser);
 router.post("/admin-login", loginAdminCtrl);
 router.post("/cart", authMiddleware, cart);
+router.post("/create-order", authMiddleware, createOrder);
 router.post("/forget-password", authMiddleware, forgetPasswordToken);
 router.put("/reset-password/:token", authMiddleware, resetPassword);
 router.put("/password", authMiddleware, changePassword);
