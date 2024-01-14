@@ -533,6 +533,26 @@ const getOrderByUserId = expressAsyncHandler(async (req, res) => {
     }
 });
 
+//updating order status
+
+const updateOrderStatus = expressAsyncHandler(async (req, res) => {
+    const { status } = req.body;
+    const { id } = req.params;
+    validateMongoId(id);
+    try {
+        const findOrder = await Order.findByIdAndUpdate(id, {
+            orderStatus: status,
+            paymentIntent: { status: status },
+        },
+            {
+                new: true
+            });
+        res.json(findOrder);
+    } catch (err) {
+        throw new Error(err);
+    }
+});
+
 module.exports = {
     createUser,
     loginUser,
@@ -557,5 +577,6 @@ module.exports = {
     createOrder,
     getOrders,
     getAllOrders,
-    getOrderByUserId
+    getOrderByUserId,
+    updateOrderStatus
 };
