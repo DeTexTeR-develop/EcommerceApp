@@ -524,7 +524,7 @@ const getOrderByUserId = expressAsyncHandler(async (req, res) => {
     const { id } = req.params;
     validateMongoId(id);
     try {
-        const userorders = await Order.findOne({ orderby: id })
+        const userorders = await Order.findOne({ orderBy: id })
             .populate("orderBy")
             .exec();
         res.json(userorders);
@@ -542,7 +542,7 @@ const updateOrderStatus = expressAsyncHandler(async (req, res) => {
     try {
         const findOrder = await Order.findByIdAndUpdate(id, {
             orderStatus: status,
-            paymentIntent: { status: status },
+            paymentIntent: { status },
         },
             {
                 new: true
